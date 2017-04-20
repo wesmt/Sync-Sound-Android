@@ -1,21 +1,26 @@
 package com.example.wesmt.testp2p;
 
+import android.Manifest;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.pm.PackageManager;
 import android.database.DataSetObserver;
 import android.database.DatabaseUtils;
+import android.net.Uri;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.support.v7.widget.Toolbar;
@@ -51,8 +56,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private boolean IsWifiP2pEnabled = false;
     Channel mChannel;
     private ListView lv;
+    private ListView songList;
     WifiP2pManager mManager;
-    private List<String> songs = new ArrayList<String>();
+
     //WifiP2pDevice device;
     private final IntentFilter intentFilter = new IntentFilter();
     private BroadCast receiver = new BroadCast(mManager,mChannel,this) {
@@ -61,9 +67,15 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
         }
     };
+
     private ArrayAdapter<String> wifiAdapter;
+    private ArrayAdapter<String> songAdapter;
     private int deviceNumber;
     //private BroadCast peers = new BroadCast(mManager,mChannel,this);
+
+    //arraylist for songs
+    public ArrayList<Song> arrayList = new ArrayList<Song>();
+
 
 
 
@@ -113,8 +125,37 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         Button join = (Button) findViewById((R.id.join));
         join.setOnClickListener(this);
 
+        //list view of songs
+        getSongs();
+        //Song k = new Song();
+
+        songList = (ListView) findViewById(R.id.songs);
+        songAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        songList.setAdapter(songAdapter);
+
+        for(Song k : arrayList)
+        {
+            songAdapter.add(k.getTitle());
+        }
+        songList.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView parent, View view, int pos, long id)
+            {
+                Object listItem = songList.getItemAtPosition(pos);
+                //int test = Integer.valueOf((String) listItem);
+                Song k = arrayList.get(pos);
+                Toast.makeText(MainActivity.this, String.format("%s was chose.", k.getTitle()),Toast.LENGTH_SHORT).show();
+                // TODO: we need to send this song to any connected device
+            }
+
+
+        });
+
+
+
         Log.d("TAG","i'm back");
-        String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
+       /* String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
 
         String[] projection = {
                 //MediaStore.Audio.Media._ID,
@@ -139,12 +180,40 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         }
 
             cursor.close();
-            Log.d("value is: ", songs.get(5));
+            Log.d("value is: ", songs.get(5));*/
 
 
 
     }
 
+    public void getSongs()
+    {
+
+
+        ContentResolver contentResolver = getContentResolver();
+        Uri songUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)==
+                PackageManager.PERMISSION_GRANTED) {
+
+            //do the things
+            } else {
+            requestPermissions(new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
+                    10);}
+        Cursor songCursor = contentResolver.query(songUri,null,null,null,null);
+        if(songCursor != null && songCursor.moveToFirst())
+        {
+            int songId = songCursor.getColumnIndex(MediaStore.Audio.Media._ID);
+            int songTitle = songCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
+            do{
+                long currentId = songCursor.getLong(songId);
+                String currentTitle = songCursor.getString(songTitle);
+                arrayList.add(new Song(currentId,currentTitle));
+            }while(songCursor.moveToNext());
+        }
+        songCursor.close();
+
+
+    }
 
     public void onClick(View v)
     {
@@ -185,6 +254,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
 
     }
+
+
 
     @Override
     public void onResume() {
