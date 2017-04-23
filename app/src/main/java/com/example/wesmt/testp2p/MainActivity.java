@@ -55,6 +55,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     private boolean IsWifiP2pEnabled = false;
     Channel mChannel;
+    private Boolean hostdevice = false;
+
     private ListView lv;
     private ListView songList;
     WifiP2pManager mManager;
@@ -145,8 +147,10 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 Object listItem = songList.getItemAtPosition(pos);
                 //int test = Integer.valueOf((String) listItem);
                 Song k = arrayList.get(pos);
-                Toast.makeText(MainActivity.this, String.format("%s was chose.", k.getTitle()),Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, String.format("%s was chose. %s", k.getTitle(),k.getSongPath()),Toast.LENGTH_SHORT).show();
                 // TODO: we need to send this song to any connected device
+
+                // TODO: we need to go back and get the songs actual data to send
             }
 
 
@@ -186,11 +190,13 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     }
 
+
     public void getSongs()
     {
 
 
         ContentResolver contentResolver = getContentResolver();
+        String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
         Uri songUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)==
                 PackageManager.PERMISSION_GRANTED) {
@@ -199,15 +205,18 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             } else {
             requestPermissions(new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
                     10);}
-        Cursor songCursor = contentResolver.query(songUri,null,null,null,null);
+        Cursor songCursor = contentResolver.query(songUri,null,selection,null,null);
         if(songCursor != null && songCursor.moveToFirst())
         {
             int songId = songCursor.getColumnIndex(MediaStore.Audio.Media._ID);
             int songTitle = songCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
+            int data = songCursor.getColumnIndex(MediaStore.Audio.Media.DATA);
+
             do{
                 long currentId = songCursor.getLong(songId);
                 String currentTitle = songCursor.getString(songTitle);
-                arrayList.add(new Song(currentId,currentTitle));
+                String path = songCursor.getString(data);
+                arrayList.add(new Song(currentId,currentTitle,path));
             }while(songCursor.moveToNext());
         }
         songCursor.close();
@@ -224,7 +233,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                     @Override
                     public void onSuccess() {
 
-
+                        hostdevice = true;
                         Toast.makeText(MainActivity.this, "Discovery Initiated",
                                 Toast.LENGTH_SHORT).show();
                     }

@@ -8,13 +8,19 @@ public class Song {
 
     private long songID;
     private String songTitle;
+    private String songPath;
 
-    public Song(long id, String title)
+    public Song(long id, String title,String path)
     {
         songID = id;
         songTitle = title;
+        songPath = path;
     }
 
+    public String getSongPath()
+    {
+        return songPath;
+    }
     public long getSongID()
     {
         return songID;
