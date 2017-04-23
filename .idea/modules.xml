@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/Sync-Sound-Android.iml" filepath="$PROJECT_DIR$/Sync-Sound-Android.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/testp2p.iml" filepath="$PROJECT_DIR$/testp2p.iml" />
     </modules>
