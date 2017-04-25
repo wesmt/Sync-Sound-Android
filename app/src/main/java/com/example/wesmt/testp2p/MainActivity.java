@@ -10,11 +10,15 @@ import android.content.BroadcastReceiver;
 import android.content.pm.PackageManager;
 import android.database.DataSetObserver;
 import android.database.DatabaseUtils;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pInfo;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -41,6 +45,12 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.List;
 import android.widget.Toast;
 
@@ -50,7 +60,7 @@ import java.lang.Object;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements OnClickListener {
+public class MainActivity extends AppCompatActivity implements OnClickListener, WifiP2pManager.ConnectionInfoListener {
 
 
     private boolean IsWifiP2pEnabled = false;
@@ -59,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     private ListView lv;
     private ListView songList;
+    private Button mChooseButton;
     WifiP2pManager mManager;
 
     //WifiP2pDevice device;
@@ -86,6 +97,17 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mChooseButton = (Button) findViewById(R.id.choose);
+        mChooseButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent();
+                i.setAction(Intent.ACTION_GET_CONTENT);
+                i.setType("audio/*");
+                startActivityForResult(i, 0);
+            }
+        });
 
 
 
@@ -117,6 +139,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 Object listItem = lv.getItemAtPosition(pos);
                 //int test = Integer.valueOf((String) listItem);
                 receiver.connect(pos);
+
             }
 
 
@@ -190,6 +213,41 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     }
 
+    @Override
+    public void onConnectionInfoAvailable(final WifiP2pInfo info) {
+        // TODO: Create ClientSocket
+    }
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK){
+            if ((data != null) && (data.getData() != null)){
+                Uri audioFileUri = data.getData();
+                Toast.makeText(this, audioFileUri.toString(), Toast.LENGTH_LONG).show();
+                sendSong(audioFileUri);
+                play(audioFileUri);
+            }
+        }
+    }
+
+    public void play(Uri data) {
+        MediaPlayer mp = new MediaPlayer();
+        mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            try {
+                mp.setDataSource(getApplicationContext(), data);
+                mp.prepare();
+                mp.start();
+            } catch (Exception e) {
+                Log.d("PLAY", "Exception: " + e);
+            }
+
+    }
+
+    public void sendSong(Uri songUri) {
+
+    }
 
     public void getSongs()
     {
@@ -310,4 +368,3 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         this.IsWifiP2pEnabled = b;
     }
 }
-

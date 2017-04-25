@@ -3,11 +3,13 @@ package com.example.wesmt.testp2p;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.net.NetworkInfo;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -111,6 +113,14 @@ public BroadCast(WifiP2pManager mManager, WifiP2pManager.Channel mChannel, MainA
             // that.
             //
 
+            NetworkInfo networkInfo = intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
+
+            if (networkInfo.isConnected()) {
+
+                // We are connected with the other device
+                // TODO: Create Server Socket as an aSyncTask
+            }
+
         }
         else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
 //            DeviceListFragment fragment = (DeviceListFragment) MainActivity.getFragmentManager()
@@ -129,3 +139,27 @@ public BroadCast(WifiP2pManager mManager, WifiP2pManager.Channel mChannel, MainA
 }
 
 
+//public class FileServerAsyncTask extends AsyncTask {
+//
+//    private Context context;
+//
+//    public FileServerAsyncTask(Context context) {
+//        this.context = context;
+//    }
+//
+//    @Override
+//    protected String doInBackground(String s) {
+//        s = "shit";
+//        return s;
+//    }
+//
+//    /**
+//     * Start activity that can handle the JPEG image
+//     */
+//    @Override
+//    protected void onPostExecute(String result) {
+//        if (result.equals("shit")) {
+//            Log.d("Project", "Pretty much how I expected this to go");
+//        }
+//    }
+//}
